@@ -7,8 +7,8 @@ The game runs entirely in the browser using plain HTML, CSS and JavaScript, with
 ## Development
 
 ```sh
-./serve.sh   # serve the site at http://localhost:8000
-./test.sh    # run the tests
+./dev serve   # serve the site at http://localhost:8000
+./dev test    # run the tests
 ```
 
 ## Credits

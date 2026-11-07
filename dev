@@ -1,0 +1,45 @@
+#!/bin/sh
+# Project commands.  Everything runs in Docker.  Run ./dev to list them.
+set -eu
+cd "$(dirname "$0")"
+
+IMAGE=12-across-dev
+
+usage() {
+  cat <<'EOF'
+Usage: ./dev <command>
+
+Commands:
+  test [args]   Run the tests.  Extra arguments go to `node --test`.
+  serve         Serve the site at http://localhost:8000.
+                Set PORT to use a different port.
+EOF
+}
+
+# Run a container with the project mounted at /app.  The arguments go straight
+# to `docker run`, so they include any options, the image and the command.
+in_container() {
+  docker build -q -t "$IMAGE" . > /dev/null
+  exec docker run --rm --init \
+    --user "$(id -u):$(id -g)" \
+    --mount type=bind,src="$PWD",target=/app \
+    "$@"
+}
+
+case "${1:-}" in
+  test)
+    shift
+    in_container "$IMAGE" node --test "$@"
+    ;;
+  serve)
+    in_container --publish "${PORT:-8000}:8000" "$IMAGE" node tools/serve.js
+    ;;
+  ''|help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $1" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

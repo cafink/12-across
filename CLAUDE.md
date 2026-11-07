@@ -12,8 +12,10 @@ An any-time browser word game: roll 12 letters, then arrange them into one conne
 
 All tooling runs in Docker; don't run Node on the host.
 
-- `./test.sh` runs the tests (Node's built-in `node:test`).
-- `./serve.sh` serves the site at http://localhost:8000.
+- `./dev test` runs the tests (Node's built-in `node:test`).
+- `./dev serve` serves the site at http://localhost:8000.
+- Run `./dev` with no arguments to list all commands.
+- Add new commands to the `dev` script instead of creating separate scripts.
 
 ## Workflow
 
