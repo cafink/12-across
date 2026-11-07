@@ -1,0 +1,29 @@
+# Valid words missing from the source lists.
+# These are added to the validation list only.
+
+acai
+app
+asiago
+barcode
+barcodes
+ebook
+ebooks
+firepit
+firepits
+gif
+gifs
+hitman
+hitmen
+mohawk
+mohawks
+pho
+ramen
+tase
+tased
+tases
+tasing
+vlog
+vlogs
+wifi
+yakuza
+zen

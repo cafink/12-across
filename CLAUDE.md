@@ -14,6 +14,7 @@ All tooling runs in Docker; don't run Node on the host.
 
 - `./dev test` runs the tests (Node's built-in `node:test`).
 - `./dev serve` serves the site at http://localhost:8000.
+- `./dev words` rebuilds the word lists.  Run it after changing anything in `data/`, and commit the results.
 - Run `./dev` with no arguments to list all commands.
 - Add new commands to the `dev` script instead of creating separate scripts.
 
