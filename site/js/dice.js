@@ -1,5 +1,7 @@
 // Rolling the 12 letters for a puzzle.
 
+import { TILE_COUNT } from './rules.js';
+
 // Our own set of 12 dice.  The first two are all vowels and the third is half
 // vowels, so every roll has 2 or 3 vowels, plus sometimes a Y.  There's no Q.
 export const DICE = [
@@ -18,7 +20,6 @@ export const DICE = [
 ];
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
-const LETTER_COUNT = 12;
 
 // Return a random number generator that always gives the same sequence for the
 // same seed, so a roll can be replayed.  It uses Tommy Ettinger's Mulberry32
@@ -53,5 +54,5 @@ export function rollDice(random) {
 // Pick 12 letters from the whole alphabet, each equally likely.  Any letter can
 // appear, including Q, and letters can repeat.
 export function rollAnyLetters(random) {
-  return Array.from({ length: LETTER_COUNT }, () => pick(ALPHABET, random)).sort();
+  return Array.from({ length: TILE_COUNT }, () => pick(ALPHABET, random)).sort();
 }

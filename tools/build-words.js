@@ -7,13 +7,14 @@
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { MIN_WORD_LENGTH, TILE_COUNT } from '../site/js/rules.js';
 import { SOLVABLE_FILE, VALID_FILE } from '../site/js/word-files.js';
 
 // How much of SCOWL goes into each list.  SCOWL groups words into size levels
 // by how common they are--lower numbers are more common.
 const SOLVABLE_MAX_SIZE = 35;
 const VALID_MAX_SIZE = 60;
-const WORD = /^[a-z]{3,12}$/;
+const WORD = new RegExp(`^[a-z]{${MIN_WORD_LENGTH},${TILE_COUNT}}$`);
 
 export const NOTICE_FILE = 'SCOWL-COPYRIGHT.txt';
 
