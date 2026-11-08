@@ -1,5 +1,22 @@
 :root {
   color-scheme: light dark;
+  --square: #e8e4dc;
+  --tile: #fdfaf3;
+  --tile-text: #222;
+  --tile-edge: #b9b1a1;
+  --rack: #d8d2c6;
+  --slot: #cbc4b6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --square: #2b2a28;
+    --tile: #e9e3d6;
+    --tile-text: #1b1b1b;
+    --tile-edge: #8c8475;
+    --rack: #3a3936;
+    --slot: #2f2e2b;
+  }
 }
 
 body {
@@ -9,7 +26,77 @@ body {
 }
 
 main {
-  max-width: 40rem;
+  max-width: 32rem;
   margin: 0 auto;
   padding: 1rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+}
+
+#status:empty {
+  display: none;
+}
+
+/* The board's size comes from game.js, so it's only defined once. */
+#board {
+  display: grid;
+  grid-template-columns: repeat(var(--board-size), 1fr);
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+
+.square {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--square);
+}
+
+#rack {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.4rem;
+  min-height: 3rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: var(--rack);
+  margin-bottom: 1rem;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid var(--tile-edge);
+  border-radius: 4px;
+  background: var(--tile);
+  color: var(--tile-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.square .tile {
+  height: 100%;
+  box-sizing: border-box;
+  font-size: clamp(0.7rem, 3.5vw, 1.1rem);
+}
+
+.slot {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--slot);
+}
+
+.slot .tile {
+  height: 100%;
+  box-sizing: border-box;
+  font-size: clamp(1rem, 5vw, 1.5rem);
+}
+
+button {
+  font: inherit;
+  padding: 0.4rem 1rem;
 }

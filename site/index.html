@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>12 Across</title>
   <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/ui.js"></script>
 </head>
 <body>
   <main>
     <h1>12 Across</h1>
-    <p>Twelve letters.  One crossword.</p>
+    <p id="status">Loading words…</p>
+    <div id="board" role="group" aria-label="Board"></div>
+    <div id="rack" role="group" aria-label="Rack"></div>
+    <button id="new-game" type="button" disabled>New Game</button>
   </main>
 </body>
 </html>
