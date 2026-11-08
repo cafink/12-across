@@ -12,6 +12,7 @@ Usage: ./dev <command>
 Commands:
   test [args]   Run the tests.  Extra arguments go to `node --test`.
   words         Rebuild the word lists in site/words/.
+  bench [rolls] Measure puzzle generation.  Defaults to 1000 rolls.
   serve         Serve the site at http://localhost:8000.
                 Set PORT to use a different port.
 EOF
@@ -34,6 +35,10 @@ case "${1:-}" in
     ;;
   words)
     in_container "$IMAGE" node tools/build-words.js
+    ;;
+  bench)
+    shift
+    in_container "$IMAGE" node tools/benchmark.js "$@"
     ;;
   serve)
     in_container --publish "${PORT:-8000}:8000" "$IMAGE" node tools/serve.js

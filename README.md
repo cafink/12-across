@@ -10,6 +10,7 @@ The game runs entirely in the browser using plain HTML, CSS and JavaScript, with
 ./dev serve   # serve the site at http://localhost:8000
 ./dev test    # run the tests
 ./dev words   # rebuild the word lists
+./dev bench   # measure puzzle generation
 ```
 
 ## Word lists
