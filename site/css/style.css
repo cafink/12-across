@@ -100,3 +100,21 @@ button {
   font: inherit;
   padding: 0.4rem 1rem;
 }
+
+/* Touching a tile starts a drag, not a scroll. */
+.tile {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tile.dragging {
+  position: relative;
+  z-index: 1;
+  cursor: grabbing;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.3);
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
+}

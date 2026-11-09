@@ -36,3 +36,35 @@ export function placedTiles(game) {
 export function rackTiles(game) {
   return game.tiles.filter((tile) => tile.slot !== null);
 }
+
+export function isOnBoard(row, col) {
+  return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+}
+
+function isTaken(game, place) {
+  return game.tiles.some((tile) =>
+    'slot' in place ? tile.slot === place.slot : tile.row === place.row && tile.col === place.col);
+}
+
+// Move a tile to a place: either `{ row, col }` on the board or `{ slot }` in
+// the rack.  Return whether it moved.  It doesn't move if the place is
+// occupied (even by the same tile), or if it isn't on the board or rack.
+export function moveTile(game, id, place) {
+  const valid = 'slot' in place
+    ? Number.isInteger(place.slot) && place.slot >= 0 && place.slot < RACK_SLOTS
+    : Number.isInteger(place.row) && Number.isInteger(place.col) && isOnBoard(place.row, place.col);
+  if (!valid || isTaken(game, place)) return false;
+
+  const tile = game.tiles.find((candidate) => candidate.id === id);
+  tile.slot = place.slot ?? null;
+  tile.row = place.row ?? null;
+  tile.col = place.col ?? null;
+  return true;
+}
+
+export function returnAllToRack(game) {
+  const taken = new Set(rackTiles(game).map((tile) => tile.slot));
+  const openSlots = [...Array(RACK_SLOTS).keys()].filter((slot) => !taken.has(slot));
+  const onBoard = placedTiles(game).sort((a, b) => a.row - b.row || a.col - b.col);
+  onBoard.forEach((tile, i) => moveTile(game, tile.id, { slot: openSlots[i] }));
+}
