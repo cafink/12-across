@@ -1,7 +1,8 @@
-// Draw the game on the page and handle dragging + the buttons.  The game
+// Draw the game on the page and handle dragging, tapping and buttons.  The game
 // logic lives in the other modules, so this file only deals with the page.
 
 import { BOARD_SIZE, RACK_SLOTS, moveTile, placedTiles, rackTiles, returnAllToRack, startGame } from './game.js';
+import { isDrag, tap } from './input.js';
 import { generatePuzzle } from './puzzle.js';
 import { SOLVABLE_FILE } from './word-files.js';
 
@@ -14,8 +15,11 @@ const clearButton = document.querySelector('#clear-board');
 let solvableWords;
 let game;
 
-// The tile being dragged, if any.
-let drag = null;
+// The tile being pressed and whether that press has become a drag.
+let press = null;
+
+// A tapped tile, waiting for a subsequent tap to tell it where it should go.
+let selected = null;
 
 async function loadWords(file) {
   const response = await fetch(`words/${file}`);
@@ -28,6 +32,7 @@ function tileElement(tile) {
   element.className = 'tile';
   element.textContent = tile.letter;
   element.dataset.id = tile.id;
+  if (tile.id === selected) element.classList.add('selected');
   return element;
 }
 
@@ -71,26 +76,39 @@ function moveTo(id, element) {
   render();
 }
 
-function startDrag(event) {
+function startPress(event) {
   const element = event.target.closest('.tile');
-  if (!element || event.button !== 0 || drag) return;
+  if (!element || event.button !== 0 || press) return;
   event.preventDefault();
   element.setPointerCapture(event.pointerId);
-  element.classList.add('dragging');
-  drag = { id: Number(element.dataset.id), element, x: event.clientX, y: event.clientY };
+  press = { id: Number(element.dataset.id), element, x: event.clientX, y: event.clientY, moved: false };
 }
 
-function continueDrag(event) {
-  if (!drag) return;
-  drag.element.style.transform = `translate(${event.clientX - drag.x}px, ${event.clientY - drag.y}px)`;
+function continuePress(event) {
+  if (!press) return;
+  const dx = event.clientX - press.x;
+  const dy = event.clientY - press.y;
+  if (!press.moved) {
+    if (!isDrag(dx, dy)) return;
+    press.moved = true;
+    selected = null;
+    press.element.classList.remove('selected');
+    press.element.classList.add('dragging');
+  }
+  press.element.style.transform = `translate(${dx}px, ${dy}px)`;
 }
 
-// Drop the tile on whatever square/slot is under the pointer.  (The dragged
-// tile is hidden so it won't be what's found under the pointer.)
-function endDrag(event) {
-  if (!drag) return;
-  const { id, element } = drag;
-  drag = null;
+// If the press never became a drag, it's a tap.  Otherwise, drop the tile on
+// whatever square/slot is under the pointer.  (The dragged tile is hidden so it
+// won't be what's found under the pointer.)
+function endPress(event) {
+  if (!press) return;
+  const { id, element, moved } = press;
+  press = null;
+  if (!moved) {
+    applyTap({ tile: id });
+    return;
+  }
   element.style.visibility = 'hidden';
   const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.square, .slot');
   if (target) {
@@ -100,18 +118,36 @@ function endDrag(event) {
   }
 }
 
-function cancelDrag() {
-  if (!drag) return;
-  drag = null;
+// Carry out a tap as decided by `tap` in input.js, then redraw.
+function applyTap(tapped) {
+  const result = tap(selected, tapped);
+  selected = result.selected;
+  if (result.move) moveTile(game, result.move.id, result.move.place);
+  render();
+}
+
+// Work out what a click/tap landed on, besides a tile or button.  Tiles are
+// handled by the press code, and buttons have their own handlers.
+function tapPlace(event) {
+  if (event.target.closest('.tile, button')) return;
+  const place = event.target.closest('.square, .slot');
+  applyTap(place ? { place: placeOf(place) } : {});
+}
+
+function cancelPress() {
+  if (!press) return;
+  press = null;
   render();
 }
 
 function newGame() {
+  selected = null;
   game = startGame(generatePuzzle(solvableWords));
   render();
 }
 
 function clearBoard() {
+  selected = null;
   returnAllToRack(game);
   render();
 }
@@ -128,10 +164,11 @@ async function start() {
   for (const button of [newGameButton, clearButton]) button.disabled = false;
   newGameButton.addEventListener('click', newGame);
   clearButton.addEventListener('click', clearBoard);
-  document.addEventListener('pointerdown', startDrag);
-  document.addEventListener('pointermove', continueDrag);
-  document.addEventListener('pointerup', endDrag);
-  document.addEventListener('pointercancel', cancelDrag);
+  document.addEventListener('pointerdown', startPress);
+  document.addEventListener('pointermove', continuePress);
+  document.addEventListener('pointerup', endPress);
+  document.addEventListener('pointercancel', cancelPress);
+  document.addEventListener('click', tapPlace);
   newGame();
 }
 

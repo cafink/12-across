@@ -6,6 +6,7 @@
   --tile-edge: #b9b1a1;
   --rack: #d8d2c6;
   --slot: #cbc4b6;
+  --selected: #2f6fd6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,6 +17,7 @@
     --tile-edge: #8c8475;
     --rack: #3a3936;
     --slot: #2f2e2b;
+    --selected: #5b9bff;
   }
 }
 
@@ -117,4 +119,12 @@ button {
 .buttons {
   display: flex;
   gap: 0.5rem;
+}
+
+.tile.selected {
+  outline: 3px solid var(--selected);
+  outline-offset: 1px;
+  /* Draw the outline above neighboring tiles, which would otherwise cover it. */
+  position: relative;
+  z-index: 1;
 }
