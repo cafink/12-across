@@ -1,19 +1,37 @@
 // Draw the game on the page and handle dragging, tapping and buttons.  The game
 // logic lives in the other modules, so this file only deals with the page.
 
-import { BOARD_SIZE, RACK_SLOTS, moveTile, placedTiles, rackTiles, returnAllToRack, startGame } from './game.js';
+import {
+  BOARD_SIZE,
+  RACK_SLOTS,
+  checkGame,
+  moveTile,
+  placedTiles,
+  rackTiles,
+  returnAllToRack,
+  startGame,
+} from './game.js';
 import { isDrag, tap } from './input.js';
 import { generatePuzzle } from './puzzle.js';
-import { SOLVABLE_FILE } from './word-files.js';
+import { SOLVABLE_FILE, VALID_FILE } from './word-files.js';
 
 const board = document.querySelector('#board');
 const rack = document.querySelector('#rack');
 const status = document.querySelector('#status');
+const message = document.querySelector('#message');
 const newGameButton = document.querySelector('#new-game');
 const clearButton = document.querySelector('#clear-board');
 
 let solvableWords;
 let game;
+
+// The validation list is null until it's loaded.  Words aren't checked until
+// then.
+let validWords = null;
+
+// Whether the validation list failed to load, so its error message isn't
+// cleared when the other list finishes loading.
+let validWordsFailed = false;
 
 // The tile being pressed and whether that press has become a drag.
 let press = null;
@@ -27,12 +45,13 @@ async function loadWords(file) {
   return (await response.text()).trimEnd().split('\n');
 }
 
-function tileElement(tile) {
+function tileElement(tile, validTiles) {
   const element = document.createElement('div');
   element.className = 'tile';
   element.textContent = tile.letter;
   element.dataset.id = tile.id;
   if (tile.id === selected) element.classList.add('selected');
+  if (validTiles.has(tile.id)) element.classList.add('valid');
   return element;
 }
 
@@ -46,13 +65,18 @@ function emptyElements(count, className) {
 }
 
 function render() {
+  const { solved, validTiles } = validWords
+    ? checkGame(game, (word) => validWords.has(word))
+    : { solved: false, validTiles: new Set() };
+  message.textContent = solved ? 'Solved!  Nice work.' : '';
+
   const squares = emptyElements(BOARD_SIZE * BOARD_SIZE, 'square');
   squares.forEach((square, i) => {
     square.dataset.row = Math.floor(i / BOARD_SIZE);
     square.dataset.col = i % BOARD_SIZE;
   });
   for (const tile of placedTiles(game)) {
-    squares[tile.row * BOARD_SIZE + tile.col].append(tileElement(tile));
+    squares[tile.row * BOARD_SIZE + tile.col].append(tileElement(tile, validTiles));
   }
   board.replaceChildren(...squares);
 
@@ -60,7 +84,7 @@ function render() {
   slots.forEach((slot, i) => {
     slot.dataset.slot = i;
   });
-  for (const tile of rackTiles(game)) slots[tile.slot].append(tileElement(tile));
+  for (const tile of rackTiles(game)) slots[tile.slot].append(tileElement(tile, validTiles));
   rack.replaceChildren(...slots);
 }
 
@@ -152,15 +176,29 @@ function clearBoard() {
   render();
 }
 
+// Load the validation list after the game has started, so the game can start
+// without waiting for it.  Valid words light up once it loads.
+async function loadValidWords() {
+  try {
+    validWords = new Set(await loadWords(VALID_FILE));
+  } catch (error) {
+    validWordsFailed = true;
+    status.textContent = 'Sorry, words can\u2019t be checked, because the word list didn\u2019t load.  Try reloading the page.';
+    throw error;
+  }
+  render();
+}
+
 async function start() {
   board.style.setProperty('--board-size', BOARD_SIZE);
+  const validLoad = loadValidWords();
   try {
     solvableWords = await loadWords(SOLVABLE_FILE);
   } catch (error) {
     status.textContent = 'Sorry, the word list didn’t load.  Try reloading the page.';
     throw error;
   }
-  status.textContent = '';
+  if (!validWordsFailed) status.textContent = '';
   for (const button of [newGameButton, clearButton]) button.disabled = false;
   newGameButton.addEventListener('click', newGame);
   clearButton.addEventListener('click', clearBoard);
@@ -170,6 +208,7 @@ async function start() {
   document.addEventListener('pointercancel', cancelPress);
   document.addEventListener('click', tapPlace);
   newGame();
+  await validLoad;
 }
 
 start();

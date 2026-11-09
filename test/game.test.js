@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRandom } from '../site/js/dice.js';
 import {
   BOARD_SIZE,
+  checkGame,
   RACK_SLOTS,
   moveTile,
   placedTiles,
@@ -18,6 +19,17 @@ import { SOLVABLE_FILE } from '../site/js/word-files.js';
 const solvable = readFileSync(new URL(`../site/words/${SOLVABLE_FILE}`, import.meta.url), 'utf8').trimEnd().split('\n');
 const puzzle = { letters: [...'aabeiklmnrst'], solution: [] };
 const findOpenSlot = (game) => [...Array(RACK_SLOTS).keys()].find((slot) => !rackTiles(game).some((tile) => tile.slot === slot));
+
+// Put tiles on the board from a picture, taking each letter from the rack.  The
+// optional offset moves the whole picture.  Every move must succeed.
+function place(game, lines, rowOffset = 0, colOffset = 0) {
+  lines.forEach((line, row) => [...line].forEach((letter, col) => {
+    if (letter === '.') return;
+    const tile = rackTiles(game).find((candidate) => candidate.letter === letter);
+    const square = { row: row + rowOffset, col: col + colOffset };
+    assert.equal(moveTile(game, tile.id, square), true, `couldn't place ${letter} at ${JSON.stringify(square)}`);
+  }));
+}
 
 test('a new game starts with every tile in the rack', () => {
   const game = startGame(puzzle, createRandom(1));
@@ -118,13 +130,7 @@ test('a solution against the bottom right corner of the board is solved', () => 
   // This builds a real solution in the corner and checks it.
   const solution = ['.....t.', '....box', '.....g.', 'typical'];
   const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
-  const top = BOARD_SIZE - solution.length;
-  const left = BOARD_SIZE - solution[0].length;
-  solution.forEach((line, r) => [...line].forEach((letter, c) => {
-    if (letter === '.') return;
-    const tile = rackTiles(game).find((candidate) => candidate.letter === letter);
-    assert.equal(moveTile(game, tile.id, { row: top + r, col: left + c }), true);
-  }));
+  place(game, solution, BOARD_SIZE - solution.length, BOARD_SIZE - solution[0].length);
   const valid = new Set(['typical', 'toga', 'box']);
   assert.equal(checkBoard(placedTiles(game), (word) => valid.has(word)).solved, true);
 });
@@ -139,4 +145,45 @@ test('returning all tiles fills empty slots in reading order', () => {
   assert.deepEqual(placedTiles(game), []);
   for (const tile of stayed) assert.equal(at(game, tile.id).slot, tile.slot);
   assert.deepEqual([7, 9, 3].map((id) => at(game, id).slot), open);
+});
+
+const smallList = new Set(['typical', 'toga', 'box', 'cat']);
+const inSmallList = (word) => smallList.has(word);
+const letterOf = (game, id) => game.tiles.find((tile) => tile.id === id).letter;
+
+test('tiles in a valid word light up', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['typical']);
+  const { solved, validTiles } = checkGame(game, inSmallList);
+  assert.equal(solved, false);
+  assert.deepEqual([...validTiles].map((id) => letterOf(game, id)).sort(), [...'acilpty']);
+});
+
+test('tiles only in invalid runs stay unlit', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['typical', '......o']);
+  const { validTiles } = checkGame(game, inSmallList);
+  assert.equal([...validTiles].some((id) => letterOf(game, id) === 'o'), false);
+  assert.equal(validTiles.size, 7);
+});
+
+test('a tile in one valid word stays lit even if it is also in an invalid run', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['typical', '......o']);
+  const l = game.tiles.find((tile) => tile.letter === 'l');
+  assert.ok(checkGame(game, inSmallList).validTiles.has(l.id));
+});
+
+test('a complete board of valid words is solved, with every tile lit', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['.....t.', '....box', '.....g.', 'typical']);
+  const { solved, validTiles } = checkGame(game, inSmallList);
+  assert.equal(solved, true);
+  assert.equal(validTiles.size, 12);
+});
+
+test('an empty board has nothing lit and is not solved', () => {
+  const { solved, validTiles } = checkGame(startGame(puzzle, createRandom(1)), inSmallList);
+  assert.equal(solved, false);
+  assert.equal(validTiles.size, 0);
 });

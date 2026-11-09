@@ -7,6 +7,9 @@
   --rack: #d8d2c6;
   --slot: #cbc4b6;
   --selected: #2f6fd6;
+  --valid: #cfeec2;
+  --valid-edge: #6fae5c;
+  --win: #2e7d32;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,6 +21,9 @@
     --rack: #3a3936;
     --slot: #2f2e2b;
     --selected: #5b9bff;
+    --valid: #bfe3ae;
+    --valid-edge: #5f9b4c;
+    --win: #8fd18a;
   }
 }
 
@@ -35,6 +41,17 @@ main {
 
 h1 {
   margin: 0 0 0.5rem;
+}
+
+/* Always keep a line of space for messages, so the board doesn't shift when
+   one appears or disappears. */
+.notices {
+  min-height: 1.5em;
+  margin-bottom: 0.5rem;
+}
+
+.notices p {
+  margin: 0;
 }
 
 #status:empty {
@@ -124,7 +141,22 @@ button {
 .tile.selected {
   outline: 3px solid var(--selected);
   outline-offset: 1px;
-  /* Draw the outline above neighboring tiles, which would otherwise cover it. */
+  /* Draw the outline above neighboring tiles, which would otherwise
+     cover it. */
   position: relative;
   z-index: 1;
+}
+
+.tile.valid {
+  background: var(--valid);
+  border-color: var(--valid-edge);
+}
+
+#message {
+  font-weight: 700;
+  color: var(--win);
+}
+
+#message:empty {
+  display: none;
 }

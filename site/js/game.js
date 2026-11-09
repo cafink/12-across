@@ -1,6 +1,6 @@
 // The game's state: the tiles and where each one is.
 
-import { TILE_COUNT } from './rules.js';
+import { TILE_COUNT, checkBoard } from './rules.js';
 
 // Just big enough for any solution.
 export const BOARD_SIZE = TILE_COUNT;
@@ -67,4 +67,22 @@ export function returnAllToRack(game) {
   const openSlots = [...Array(RACK_SLOTS).keys()].filter((slot) => !taken.has(slot));
   const onBoard = placedTiles(game).sort((a, b) => a.row - b.row || a.col - b.col);
   onBoard.forEach((tile, i) => moveTile(game, tile.id, { slot: openSlots[i] }));
+}
+
+// Check the board with `isWord`, a function that returns whether a word is
+// valid.  Return whether the game is solved, and the IDs of tiles that are part
+// of at least one valid word, so they can be highlighted.
+export function checkGame(game, isWord) {
+  const tiles = placedTiles(game);
+  const { words, solved } = checkBoard(tiles, isWord);
+  const idAt = new Map(tiles.map((tile) => [`${tile.row},${tile.col}`, tile.id]));
+  const validTiles = new Set();
+  for (const { word, row, col, direction, valid } of words) {
+    if (!valid) continue;
+    for (let i = 0; i < word.length; i++) {
+      const key = direction === 'down' ? `${row + i},${col}` : `${row},${col + i}`;
+      validTiles.add(idAt.get(key));
+    }
+  }
+  return { solved, validTiles };
 }
