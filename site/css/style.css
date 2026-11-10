@@ -33,10 +33,24 @@ body {
   line-height: 1.5;
 }
 
-main {
+main,
+footer {
   max-width: 32rem;
   margin: 0 auto;
   padding: 1rem;
+}
+
+footer {
+  padding-top: 0;
+  font-size: 0.875rem;
+}
+
+footer summary {
+  cursor: pointer;
+}
+
+footer p {
+  margin: 0.5rem 0 0;
 }
 
 h1 {

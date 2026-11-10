@@ -30,3 +30,5 @@ They're built from these sources in `data/`:
 ## Credits
 
 12 Across was inspired by [Q-Less](https://q-lessgame.com/), created by Tom Sturdevant, and by [Damien Snyder](https://www.damiensnyder.com/)'s Daily Q-less.  It isn't affiliated with either.
+
+The tests and benchmark use Tommy Ettinger's [Mulberry32](https://gist.github.com/tommyettinger/46a874533244883189143505d203312c) random number generator, so their rolls can be repeated.
