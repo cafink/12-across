@@ -22,6 +22,7 @@ All tooling runs in Docker; don't run Node on the host.
 ## Workflow
 
 - Work happens in small steps, one commit per unit of work, directly on `main`.
+- Pushing `main` publishes `site/` to GitHub Pages (`.github/workflows/pages.yml`), so whatever is on `main` when it's pushed goes live.  Small steps that are ready to publish can still go straight to `main`.  Put longer features, or anything that shouldn't be live yet, on a branch and merge it when it's ready.
 - For each step: build it, run the tests, show the changes, and suggest a commit message.  The user runs `git commit` themselves.
 - Don't add a license or any mention of one.  Do meet the terms of outside resources, such as the word list notices.
 
