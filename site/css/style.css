@@ -45,16 +45,20 @@ footer {
   font-size: 0.875rem;
 }
 
-footer summary {
+summary {
   cursor: pointer;
 }
 
-footer p {
+details p {
   margin: 0.5rem 0 0;
 }
 
 h1 {
   margin: 0 0 0.5rem;
+}
+
+.how-to-play {
+  margin-bottom: 0.5rem;
 }
 
 /* Always keep a line of space for messages, so the board doesn't shift when
