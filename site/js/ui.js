@@ -39,6 +39,13 @@ let press = null;
 // A tapped tile, waiting for a subsequent tap to tell it where it should go.
 let selected = null;
 
+// Whether the board was solved at the last redraw, so the celebration only
+// plays when it first becomes solved.
+let wasSolved = false;
+
+// The words in the player's solution, shown in the win message.
+let shownWords = '';
+
 async function loadWords(file) {
   const response = await fetch(`words/${file}`);
   if (!response.ok) throw new Error(`Couldn't load ${file}: ${response.status}`);
@@ -64,20 +71,51 @@ function emptyElements(count, className) {
   });
 }
 
+// Show or clear the win message w/ the winning words.
+function showWin(words) {
+  const text = words ? words.join(', ') : '';
+
+  // Exit if they haven't changed.  This way, screen readers won't read them
+  // again.
+  if (text === shownWords) return;
+
+  shownWords = text;
+  if (!words) {
+    message.replaceChildren();
+    return;
+  }
+  const headline = document.createElement('strong');
+  headline.className = 'headline';
+  headline.textContent = 'Solved!';
+  const list = document.createElement('span');
+  list.className = 'words';
+  list.textContent = `Your words: ${text}`;
+  message.replaceChildren(headline, ' ', list);
+}
+
 function render() {
-  const { solved, validTiles } = validWords
+  const { solved, validTiles, words } = validWords
     ? checkGame(game, (word) => validWords.has(word))
-    : { solved: false, validTiles: new Set() };
-  message.textContent = solved ? 'Solved!  Nice work.' : '';
+    : { solved: false, validTiles: new Set(), words: [] };
+  const justSolved = solved && !wasSolved;
+  wasSolved = solved;
+  showWin(solved ? words : null);
+  board.classList.toggle('solved', solved);
+  board.classList.toggle('celebrate', justSolved);
+  newGameButton.classList.toggle('next', solved);
 
   const squares = emptyElements(BOARD_SIZE * BOARD_SIZE, 'square');
   squares.forEach((square, i) => {
     square.dataset.row = Math.floor(i / BOARD_SIZE);
     square.dataset.col = i % BOARD_SIZE;
   });
-  for (const tile of placedTiles(game)) {
-    squares[tile.row * BOARD_SIZE + tile.col].append(tileElement(tile, validTiles));
-  }
+  // Number the tiles in reading order, so the celebration can sweep across 'em.
+  const placed = placedTiles(game).sort((a, b) => a.row - b.row || a.col - b.col);
+  placed.forEach((tile, order) => {
+    const element = tileElement(tile, validTiles);
+    element.style.setProperty('--order', order);
+    squares[tile.row * BOARD_SIZE + tile.col].append(element);
+  });
   board.replaceChildren(...squares);
 
   const slots = emptyElements(RACK_SLOTS, 'slot');

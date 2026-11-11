@@ -10,6 +10,9 @@
   --valid: #cfeec2;
   --valid-edge: #6fae5c;
   --win: #2e7d32;
+  --win-text: #fff;
+  --solved: #f5d97a;
+  --solved-edge: #c9a227;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +27,9 @@
     --valid: #bfe3ae;
     --valid-edge: #5f9b4c;
     --win: #8fd18a;
+    --win-text: #1b1b1b;
+    --solved: #ecc94b;
+    --solved-edge: #b08d1f;
   }
 }
 
@@ -61,10 +67,10 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-/* Always keep a line of space for messages, so the board doesn't shift when
-   one appears or disappears. */
+/* Always keep room for messages, so the board doesn't shift when one appears
+   or disappears.  The tallest is the win message. */
 .notices {
-  min-height: 1.5em;
+  min-height: 3.3rem;
   margin-bottom: 0.5rem;
 }
 
@@ -177,4 +183,60 @@ button {
 
 #message:empty {
   display: none;
+}
+
+#message .headline {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+#message .words {
+  display: block;
+  font-weight: 400;
+}
+
+#board.solved .tile {
+  background: var(--solved);
+  border-color: var(--solved-edge);
+}
+
+/* When the board is solved, each tile pops in turn, changing color. */
+#board.celebrate .tile {
+  position: relative;
+  z-index: 1;
+  animation: solved-wave 400ms ease-out both;
+  animation-delay: calc(var(--order) * 60ms);
+}
+
+@keyframes solved-wave {
+  from {
+    background: var(--valid);
+    border-color: var(--valid-edge);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+}
+
+/* After a win, highlight the New Game button. */
+#new-game.next {
+  border: 1px solid var(--win);
+  border-radius: 4px;
+  background: var(--win);
+  color: var(--win-text);
+  animation: pulse 500ms ease-in-out 0.8s;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #board.celebrate .tile,
+  #new-game.next {
+    animation: none;
+  }
 }

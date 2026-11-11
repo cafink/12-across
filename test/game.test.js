@@ -182,6 +182,18 @@ test('a complete board of valid words is solved, with every tile lit', () => {
   assert.equal(validTiles.size, 12);
 });
 
+test('a solved board lists its words in reading order', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['.....t.', '....box', '.....g.', 'typical']);
+  assert.deepEqual(checkGame(game, inSmallList).words, ['toga', 'box', 'typical']);
+});
+
+test('only valid words are listed', () => {
+  const game = startGame({ letters: [...'abcgilopttxy'], solution: [] }, createRandom(1));
+  place(game, ['typical', '.......', 'bo']);
+  assert.deepEqual(checkGame(game, inSmallList).words, ['typical']);
+});
+
 test('an empty board has nothing lit and is not solved', () => {
   const { solved, validTiles } = checkGame(startGame(puzzle, createRandom(1)), inSmallList);
   assert.equal(solved, false);

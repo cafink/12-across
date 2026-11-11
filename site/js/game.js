@@ -70,19 +70,21 @@ export function returnAllToRack(game) {
 }
 
 // Check the board with `isWord`, a function that returns whether a word is
-// valid.  Return whether the game is solved, and the IDs of tiles that are part
-// of at least one valid word, so they can be highlighted.
+// valid.  Return whether the game is solved, the IDs of tiles that are part of
+// at least one valid word, and the valid words.
 export function checkGame(game, isWord) {
   const tiles = placedTiles(game);
   const { words, solved } = checkBoard(tiles, isWord);
   const idAt = new Map(tiles.map((tile) => [`${tile.row},${tile.col}`, tile.id]));
   const validTiles = new Set();
+  const validWords = [];
   for (const { word, row, col, direction, valid } of words) {
     if (!valid) continue;
+    validWords.push(word);
     for (let i = 0; i < word.length; i++) {
       const key = direction === 'down' ? `${row + i},${col}` : `${row},${col + i}`;
       validTiles.add(idAt.get(key));
     }
   }
-  return { solved, validTiles };
+  return { solved, validTiles, words: validWords };
 }
