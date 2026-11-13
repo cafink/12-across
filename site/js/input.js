@@ -21,3 +21,31 @@ export function tap(selected, tapped) {
   }
   return { selected: null, move: null };
 }
+
+// Is point (x, y) inside the given box?  Boxes are of the form `{ left, top,
+// right, bottom }`, like `getBoundingClientRect`.
+export function isInside(x, y, box) {
+  return x >= box.left && x < box.right && y >= box.top && y < box.bottom;
+}
+
+// Return the index of the box nearest (x, y), or null if the point is outside
+// of `area`.  Distance is to the box's edge, so a point inside of one has
+// distance 0 from it.  This lets a dragged tile that lands in between spaces go
+// to the nearer one.
+export function nearestBox(x, y, area, boxes) {
+  if (!isInside(x, y, area)) return null;
+  let nearest = null;
+  let nearestDistance = Infinity;
+  for (const [i, box] of boxes.entries()) {
+    const distance = Math.hypot(
+      Math.max(box.left - x, 0, x - box.right),
+      Math.max(box.top - y, 0, y - box.bottom),
+    );
+    if (distance === 0) return i;
+    if (distance < nearestDistance) {
+      nearest = i;
+      nearestDistance = distance;
+    }
+  }
+  return nearest;
+}

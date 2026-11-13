@@ -11,7 +11,7 @@ import {
   returnAllToRack,
   startGame,
 } from './game.js';
-import { isDrag, tap } from './input.js';
+import { isDrag, isInside, nearestBox, tap } from './input.js';
 import { generatePuzzle } from './puzzle.js';
 import { SOLVABLE_FILE, VALID_FILE } from './word-files.js';
 
@@ -160,10 +160,23 @@ function continuePress(event) {
   press.element.style.transform = `translate(${dx}px, ${dy}px)`;
 }
 
+// Return the space nearest the center of a dragged tile, so the tile drops on
+// the correct one, wherever it was grabbed.  Return null if the center is
+// outside the playable areas.
+function dropTarget(element) {
+  const tile = element.getBoundingClientRect();
+  const x = tile.left + tile.width / 2;
+  const y = tile.top + tile.height / 2;
+  const area = [board, rack].find((container) => isInside(x, y, container.getBoundingClientRect()));
+  if (!area) return null;
+  const places = [...area.children];
+  const boxes = places.map((place) => place.getBoundingClientRect());
+  return places[nearestBox(x, y, area.getBoundingClientRect(), boxes)] ?? null;
+}
+
 // If the press never became a drag, it's a tap.  Otherwise, drop the tile on
-// whatever square/slot is under the pointer.  (The dragged tile is hidden so it
-// won't be what's found under the pointer.)
-function endPress(event) {
+// the space under (or nearest) its center.
+function endPress() {
   if (!press) return;
   const { id, element, moved } = press;
   press = null;
@@ -171,8 +184,7 @@ function endPress(event) {
     applyTap({ tile: id });
     return;
   }
-  element.style.visibility = 'hidden';
-  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.square, .slot');
+  const target = dropTarget(element);
   if (target) {
     moveTo(id, target);
   } else {
